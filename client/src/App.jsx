@@ -1,17 +1,14 @@
 
-import './App.css'
-import Footer from './components/Footer'
-import Header from './components/Header'
-import Landing from './pages/Landing'
 
 function App() {
-  
+
+
   return (
     <>
-      <Header/>
-      <Landing/> 
-      <Footer/>
-    </> 
+      <h1 className="text-3xl font-bold underline">
+        hello
+        </h1>
+    </>
   )
 }
 
