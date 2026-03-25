@@ -3,6 +3,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
+import proposalRoutes from "./routes/proposalRoutes.js";
 import pool from "./config/db.js";
 
 dotenv.config();
@@ -22,7 +23,7 @@ app.use(express.json());
 
 
 app.use("/api/auth", authRoutes);
-
+app.use("/api/proposals", proposalRoutes);
 app.get("/", (req, res) => {
   res.send("API is running...");
 });

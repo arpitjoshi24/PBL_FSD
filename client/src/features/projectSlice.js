@@ -59,14 +59,35 @@ export const fetchProjects = createAsyncThunk(
   }
 );
 
+
+export const fetchSingleProject = createAsyncThunk(
+  "projects/fetchSingleProject",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `http://localhost:5000/api/projects/${id}`
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Error fetching project details"
+      );
+    }
+  }
+);
+
+
+
 const projectSlice = createSlice({
   name: "projects",
   initialState: {
-    projects: [],
-    loading: false,
-    error: null,
-    success: false,
-  },
+  projects: [],
+  singleProject: null,
+  loading: false,
+  error: null,
+  success: false,
+},
   reducers: {
     resetProjectState: (state) => {
       state.loading = false;
@@ -100,10 +121,48 @@ const projectSlice = createSlice({
 .addCase(fetchProjects.rejected, (state, action) => {
   state.loading = false;
   state.error = action.payload;
+}).addCase(fetchSingleProject.pending, (state) => {
+  state.loading = true;
+})
+
+.addCase(fetchSingleProject.fulfilled, (state, action) => {
+  state.loading = false;
+  state.singleProject = action.payload;
+})
+
+.addCase(fetchSingleProject.rejected, (state, action) => {
+  state.loading = false;
+  state.error = action.payload;
 });
   },
 });
 
+
+export const createProposal = createAsyncThunk(
+  "projects/createProposal",
+  async (proposalData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await axios.post(
+        "http://localhost:5000/api/proposals",
+        proposalData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Proposal failed"
+      );
+    }
+  }
+);
 
 export const { resetProjectState } = projectSlice.actions;
 export default projectSlice.reducer;

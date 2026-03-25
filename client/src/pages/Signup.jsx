@@ -14,7 +14,7 @@ export default function Signup() {
     password: "",
     role: "freelancer",
     skills: "",
-    compan: "",
+    company: "",
     about: "",
   });
 

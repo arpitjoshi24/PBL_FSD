@@ -92,3 +92,30 @@ export const getProjects = async (req, res) => {
     res.status(500).json({ message: "Server Error" });
   }
 };
+
+
+export const getSingleProject = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const project = await pool.query(
+      `SELECT p.*, u.name as client_name
+       FROM projects p
+       JOIN users u ON p.client_id = u.id
+       WHERE p.id = $1`,
+      [id]
+    );
+
+    if (project.rows.length === 0) {
+      return res.status(404).json({
+        message: "Project not found",
+      });
+    }
+
+    res.status(200).json(project.rows[0]);
+
+  } catch (error) {
+    console.error("Get Single Project Error:", error);
+    res.status(500).json({ message: "Server Error" });
+  }
+};
