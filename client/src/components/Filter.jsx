@@ -10,7 +10,7 @@ export default function Filter() {
   const [skills, setSkills] = useState("");
   const [deadline, setDeadline] = useState("");
 
-  // 🔥 Auto filter with debounce
+  // Auto filter with debounce
   useEffect(() => {
     const delay = setTimeout(() => {
       dispatch(
