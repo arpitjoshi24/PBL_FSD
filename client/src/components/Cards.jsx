@@ -26,7 +26,7 @@ export default function Cards({ project }) {
         </span>
 
         <span className="text-sm text-gray-500">
-          ⏳ {formattedDate}
+          {formattedDate}
         </span>
       </div>
 

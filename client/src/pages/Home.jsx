@@ -1,7 +1,22 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 
 export default function Home() {
+  const navigate = useNavigate();
+  const { isAuthenticated, user } = useSelector((state) => state.auth);
+
+  // Auto-redirect if already logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === "client") {
+        navigate("/client-dashboard");
+      } else if (user.role === "freelancer") {
+        navigate("/freelancer-dashboard");
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
+
   return (
     <>
       <section className="bg-gradient-to-r from-blue-50 to-indigo-100 flex items-center pt-16">
@@ -18,17 +33,31 @@ export default function Home() {
               requirements, select reputable platforms, and thoroughly vet 
               candidates' profiles, ensuring a seamless collaboration.
             </p>
-            <Link
-              to="/projects" 
-              className="inline-block px-8 py-3.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg" >
-              Find The Freelancer
-            </Link>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
+              <Link
+                to="/projects" 
+                className="inline-block px-8 py-3.5 bg-indigo-600 text-white font-medium rounded-xl hover:bg-indigo-700 transition-all shadow-md hover:shadow-lg text-center" >
+                Browse Projects
+              </Link>
+              
+              {/* Contextual button for logged in users */}
+              {isAuthenticated && (
+                <Link
+                  to={user?.role === 'client' ? '/client-dashboard' : '/freelancer-dashboard'}
+                  className="inline-block px-8 py-3.5 bg-white text-indigo-600 border border-indigo-600 font-medium rounded-xl hover:bg-indigo-50 transition-all text-center" >
+                  Go to {user?.role === 'client' ? 'Dashboard' : 'My Bids'}
+                </Link>
+              )}
+            </div>
           </div>
           <div className="lg:w-1/2 flex justify-center">
+            {/* Added a fallback check for the hero image path */}
             <img src="/hero.png" alt="Freelancing Illustration" className="w-full max-w-md drop-shadow-xl" />
           </div>
         </div>
       </section>
+
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -98,6 +127,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+
       <section className="py-16 md:py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-12 items-center">
@@ -108,8 +138,6 @@ export default function Home() {
               </h2>
               <div className="space-y-6">
                 <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">
-                  </div>
                   <div>
                     <p className="text-xl text-gray-700">
                       <span className="font-semibold">Access a pool of top talent</span> across 20+ categories
@@ -117,8 +145,6 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0"> 
-                  </div>
                   <div>
                     <p className="text-xl text-gray-700">
                       Enjoy a <span className="font-semibold">simple, easy-to-use</span> matching experience
@@ -126,8 +152,6 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">  
-                  </div>
                   <div>
                     <p className="text-xl text-gray-700">
                       Get <span className="font-semibold">quality work done</span> quickly and within budget
@@ -135,8 +159,6 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex items-start space-x-4">
-                  <div className="flex-shrink-0">  
-                  </div>
                   <div>
                     <p className="text-xl text-gray-700">
                       <span className="font-semibold">Only pay</span> when you're happy
@@ -145,14 +167,18 @@ export default function Home() {
                 </div>
               </div>
 
-              <div className="pt-4">
-                <Link
-                  to="/signup"
-                  className="inline-flex items-center px-8 py-4 bg-indigo-600 text-white text-lg font-semibold rounded-xl hover:bg-indigo-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  Join now    
-                </Link>
-              </div>
+              {/* Only show "Join now" if NOT logged in */}
+              {!isAuthenticated && (
+                <div className="pt-4">
+                  <Link
+                    to="/signup"
+                    className="inline-flex items-center px-8 py-4 bg-indigo-600 text-white text-lg font-semibold rounded-xl hover:bg-indigo-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl">
+                    Join now    
+                  </Link>
+                </div>
+              )}
             </div>
+            
             <div className="relative">
               <div className="bg-indigo-50 rounded-2xl p-8 shadow-xl">
                 <div className="grid grid-cols-2 gap-6 mb-8">

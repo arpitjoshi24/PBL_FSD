@@ -17,7 +17,6 @@ export default function Navbar() {
     <nav className="fixed w-full z-50 bg-white/70 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700 shadow-sm">
       <div className="max-w-7xl mx-auto px-6">
         <div className="flex justify-between items-center h-16">
-
           {/* Logo */}
           <Link
             to="/"
@@ -28,18 +27,23 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-
             <NavLink to="/" label="Home" />
             <NavLink to="/projects" label="Projects" />
 
-            {isAuthenticated && user?.role === "client" && (
-              <NavLink to="/add-project" label="Add Project" />
+            {/* Role-Based Dashboard Links */}
+            {isAuthenticated && (
+              <>
+                {user?.role === "client" ? (
+                  <NavLink to="/client-dashboard" label="Dashboard" />
+                ) : (
+                  <NavLink to="/freelancer-dashboard" label="My Bids" />
+                )}
+              </>
             )}
 
             {!isAuthenticated ? (
               <>
                 <NavLink to="/login" label="Login" />
-
                 <Link
                   to="/signup"
                   className="px-5 py-2 rounded-full bg-gradient-to-r from-indigo-600 to-blue-600 text-white font-medium shadow-lg hover:shadow-indigo-400/40 hover:scale-105 transition-all duration-300"
@@ -50,7 +54,6 @@ export default function Navbar() {
             ) : (
               <>
                 <NavLink to="/profile" label={`Hi, ${user?.name}`} />
-
                 <button
                   onClick={handleLogout}
                   className="px-4 py-2 rounded-full bg-red-500 text-white hover:bg-red-600 transition-all duration-300 shadow-md hover:shadow-red-400/40 hover:scale-105"
@@ -80,12 +83,18 @@ export default function Navbar() {
         }`}
       >
         <div className="bg-white/90 dark:bg-gray-900/95 backdrop-blur-xl px-6 py-6 space-y-5 shadow-xl border-t border-gray-200 dark:border-gray-700">
-
           <MobileLink to="/" label="Home" setIsOpen={setIsOpen} />
           <MobileLink to="/projects" label="Projects" setIsOpen={setIsOpen} />
 
-          {isAuthenticated && user?.role === "client" && (
-            <MobileLink to="/add-project" label="Add Project" setIsOpen={setIsOpen} />
+          {/* Mobile Role-Based Links */}
+          {isAuthenticated && (
+            <>
+              {user?.role === "client" ? (
+                <MobileLink to="/client-dashboard" label="Dashboard" setIsOpen={setIsOpen} />
+              ) : (
+                <MobileLink to="/freelancer-dashboard" label="My Bids" setIsOpen={setIsOpen} />
+              )}
+            </>
           )}
 
           {!isAuthenticated ? (
@@ -100,10 +109,9 @@ export default function Navbar() {
                 label={`Hi, ${user?.name}`}
                 setIsOpen={setIsOpen}
               />
-
               <button
                 onClick={handleLogout}
-                className="block w-full text-left text-red-400 font-semibold hover:text-red-500"
+                className="block w-full text-left text-red-500 font-semibold hover:text-red-600 transition-colors"
               >
                 Logout
               </button>
@@ -115,7 +123,7 @@ export default function Navbar() {
   );
 }
 
-/* Desktop Nav Link */
+/* Desktop Nav Link Component */
 function NavLink({ to, label }) {
   return (
     <Link
@@ -127,7 +135,7 @@ function NavLink({ to, label }) {
   );
 }
 
-/* Mobile Link */
+/* Mobile Link Component */
 function MobileLink({ to, label, setIsOpen }) {
   return (
     <Link

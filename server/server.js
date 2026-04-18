@@ -10,7 +10,7 @@ dotenv.config();
 
 const app = express();
 
-/* ---------------- Middleware ---------------- */
+// MIDDLEWARE
 
 app.use(
   cors({
