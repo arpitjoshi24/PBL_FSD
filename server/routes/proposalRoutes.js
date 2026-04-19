@@ -9,18 +9,14 @@ import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// Base route: /api/proposals
-
-// Freelancer: Submit a new bid
-router.post("/", protect, createProposal);
-
-// Client: View all bids for a specific project
+// --- 1. STATIC/SPECIFIC ROUTES ---
+router.get("/my-proposals", protect, getMyProposals);
 router.get("/project/:projectId", protect, getProjectProposals);
 
-// Client: Accept a specific freelancer's proposal
-router.patch("/:id/accept", protect, acceptProposal);
+// --- 2. GENERAL ACTION ROUTES ---
+router.post("/", protect, createProposal);
 
-// Add getMyProposals to your imports
-router.get("/my-proposals", protect, getMyProposals);
+// --- 3. DYNAMIC ROUTES ---
+router.patch("/:id/accept", protect, acceptProposal);
 
 export default router;

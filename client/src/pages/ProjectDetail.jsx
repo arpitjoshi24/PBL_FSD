@@ -15,6 +15,7 @@ export default function ProjectDetail() {
 
   // Local state for freelancer bidding
   const [bidAmount, setBidAmount] = useState("");
+  const [deliveryDays, setDeliveryDays] = useState(""); // New State
   const [proposalText, setProposalText] = useState("");
 
   // Get state from multiple slices
@@ -32,12 +33,12 @@ export default function ProjectDetail() {
     dispatch(fetchSingleProject(id));
   }, [dispatch, id]);
 
-  // Fetch proposals only if the logged-in user is the owner
+  // Fetch proposals only if the logged-in user is the owner OR a freelancer checking their status
   useEffect(() => {
-    if (isOwner) {
+    if (isOwner || isFreelancer) {
       dispatch(fetchProjectProposals(id));
     }
-  }, [dispatch, id, isOwner]);
+  }, [dispatch, id, isOwner, isFreelancer]);
 
   // Handle successful hiring
   useEffect(() => {
@@ -50,8 +51,8 @@ export default function ProjectDetail() {
   }, [acceptSuccess, dispatch, id]);
 
   const handleBidSubmit = async () => {
-    if (!bidAmount || !proposalText) {
-      alert("Please fill all fields");
+    if (!bidAmount || !proposalText || !deliveryDays) {
+      alert("Please fill all fields, including delivery days.");
       return;
     }
 
@@ -59,6 +60,7 @@ export default function ProjectDetail() {
       createProposal({
         project_id: id,
         bid_amount: bidAmount,
+        delivery_days: deliveryDays, // Passed to backend
         cover_letter: proposalText,
       })
     );
@@ -66,9 +68,9 @@ export default function ProjectDetail() {
     if (createProposal.fulfilled.match(result)) {
       alert("Proposal submitted successfully");
       setBidAmount("");
+      setDeliveryDays("");
       setProposalText("");
       dispatch(resetProjectState());
-      // Refresh proposals to update the 'hasBidded' check immediately
       if (isFreelancer) dispatch(fetchProjectProposals(id)); 
     }
   };
@@ -152,7 +154,11 @@ export default function ProjectDetail() {
                     <div className="flex justify-between items-center mb-4">
                       <div>
                         <h4 className="font-bold text-lg text-gray-800">{p.freelancer_name}</h4>
-                        <p className="text-indigo-600 font-bold">Bid: ₹{p.bid_amount}</p>
+                        <div className="flex space-x-3 text-sm font-bold mt-1">
+                          <p className="text-indigo-600">Bid: ₹{p.bid_amount}</p>
+                          <p className="text-gray-400">•</p>
+                          <p className="text-gray-600">{p.delivery_days} Days</p>
+                        </div>
                       </div>
                       {singleProject?.status === 'open' && (
                         <button 
@@ -169,7 +175,7 @@ export default function ProjectDetail() {
                   </div>
                 )) : (
                   <div className="text-center py-10">
-                    <p className="text-gray-400 italic">No proposals received yet. Your project is still visible to freelancers!</p>
+                    <p className="text-gray-400 italic">No proposals received yet.</p>
                   </div>
                 )}
               </div>
@@ -184,23 +190,37 @@ export default function ProjectDetail() {
           {isFreelancer && singleProject?.status === 'open' && !isOwner && !hasBidded && (
             <div className="bg-white rounded-2xl shadow-md p-6 sticky top-24 border border-gray-100">
               <h2 className="text-2xl font-bold mb-6 text-gray-800 tracking-tight">Place a Bid</h2>
-              <div className="mb-4">
-                <label className="text-xs font-bold text-gray-400 uppercase">Bid Amount (₹)</label>
-                <input
-                  type="number"
-                  value={bidAmount}
-                  onChange={(e) => setBidAmount(e.target.value)}
-                  className="w-full mt-2 border-gray-100 border rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50"
-                  placeholder="Enter amount"
-                />
+              
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase">Bid (₹)</label>
+                  <input
+                    type="number"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                    className="w-full mt-2 border-gray-100 border rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 text-sm"
+                    placeholder="Amount"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-400 uppercase">Days</label>
+                  <input
+                    type="number"
+                    value={deliveryDays}
+                    onChange={(e) => setDeliveryDays(e.target.value)}
+                    className="w-full mt-2 border-gray-100 border rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 text-sm"
+                    placeholder="Days"
+                  />
+                </div>
               </div>
+
               <div className="mb-6">
-                <label className="text-xs font-bold text-gray-400 uppercase">Proposal / Cover Letter</label>
+                <label className="text-xs font-bold text-gray-400 uppercase">Proposal</label>
                 <textarea
-                  rows="6"
+                  rows="5"
                   value={proposalText}
                   onChange={(e) => setProposalText(e.target.value)}
-                  className="w-full mt-2 border-gray-100 border rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50"
+                  className="w-full mt-2 border-gray-100 border rounded-xl px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none bg-gray-50 text-sm"
                   placeholder="Why should the client hire you?"
                 />
               </div>
@@ -209,16 +229,22 @@ export default function ProjectDetail() {
                 disabled={proposalLoading}
                 className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-4 rounded-xl font-bold transition-all shadow-lg shadow-indigo-200 disabled:opacity-50"
               >
-                {proposalLoading ? "Submitting..." : "Send Proposal"}
+                {proposalLoading ? "Submitting..." : "Send Professional Bid"}
               </button>
             </div>
           )}
 
-          {/* 2. Bid Status for Freelancers (Only if they bidded and project isn't open) */}
-          {isFreelancer && hasBidded && singleProject?.status !== 'open' && (
-            <div className="bg-indigo-600 rounded-2xl shadow-xl p-8 sticky top-24 text-white">
-              <h3 className="text-xl font-bold mb-2">Project Status Update</h3>
-              <p className="opacity-90 mb-6 leading-relaxed text-sm">This project has transitioned to the <strong>{singleProject?.status}</strong> phase.</p>
+          {/* 2. Bid Status for Freelancers */}
+          {isFreelancer && hasBidded && (
+            <div className={`rounded-2xl shadow-xl p-8 sticky top-24 text-white ${
+              hasBidded.status === 'accepted' ? 'bg-green-600' : 'bg-indigo-600'
+            }`}>
+              <h3 className="text-xl font-bold mb-2">
+                {hasBidded.status === 'accepted' ? 'Project Secured!' : 'Proposal Submitted'}
+              </h3>
+              <p className="opacity-90 mb-6 leading-relaxed text-sm">
+                Project Status: <strong>{singleProject?.status}</strong>
+              </p>
               <div className="bg-white/10 p-4 rounded-xl">
                 <p className="text-xs uppercase font-bold opacity-70 mb-1">Your Bid Outcome</p>
                 <p className="text-lg font-bold capitalize">{hasBidded.status}</p>

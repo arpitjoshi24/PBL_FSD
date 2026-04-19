@@ -14,11 +14,14 @@ import Footer from "./components/Footer";
 
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
+import Freelancers from "./pages/Freelancers";
 import ProjectDetails from "./pages/ProjectDetail";
+import FreelancerDetails from "./pages/FreelancerDetail";
 import AddProject from "./pages/AddProjects";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Explore from "./pages/Explore";
 import ClientDashboard from "./pages/ClientDashboard";
 import FreelancerDashboard from "./pages/FreelancerDashboard";
 
@@ -54,10 +57,13 @@ const Layout = () => {
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/freelancers" element={<Freelancers />} />
           {/* Path updated to match Dashboard links */}
-          <Route path="/project/:id" element={<ProjectDetails />} />
+          <Route path="/projects/:id" element={<ProjectDetails />} />
+          <Route path="/profile/:id" element={<FreelancerDetails />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/explore" element={<Explore />} />
 
           {/* Protected Routes (Any Role) */}
           <Route
@@ -89,7 +95,7 @@ const Layout = () => {
           />
 
           <Route path="/freelancer-dashboard" element={<ProtectedRoute><FreelancerDashboard /></ProtectedRoute>} />
-          
+
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

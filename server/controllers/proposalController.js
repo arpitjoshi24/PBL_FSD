@@ -1,23 +1,24 @@
 import pool from "../config/db.js";
 
-// @desc    Create a new proposal
+// @desc    Create a new proposal (Bid)
 // @route   POST /api/proposals
 export const createProposal = async (req, res) => {
   try {
-    const { project_id, bid_amount, cover_letter } = req.body;
+    const { project_id, bid_amount, delivery_days, cover_letter } = req.body;
 
-    if (!project_id || !bid_amount || !cover_letter) {
+    // Check for all fields including the new delivery_days
+    if (!project_id || !bid_amount || !delivery_days || !cover_letter) {
       return res.status(400).json({
-        message: "All fields are required",
+        message: "All fields (project, bid, delivery time, and letter) are required",
       });
     }
 
     const proposal = await pool.query(
       `INSERT INTO proposals 
-      (project_id, freelancer_id, bid_amount, cover_letter)
-      VALUES ($1,$2,$3,$4)
+      (project_id, freelancer_id, bid_amount, delivery_days, cover_letter)
+      VALUES ($1, $2, $3, $4, $5)
       RETURNING *`,
-      [project_id, req.user.id, bid_amount, cover_letter]
+      [project_id, req.user.id, bid_amount, delivery_days, cover_letter]
     );
 
     res.status(201).json(proposal.rows[0]);
@@ -33,7 +34,6 @@ export const getProjectProposals = async (req, res) => {
   try {
     const { projectId } = req.params;
 
-    // Verify the requester is the owner of the project
     const projectCheck = await pool.query(
       "SELECT client_id FROM projects WHERE id = $1",
       [projectId]
@@ -47,6 +47,7 @@ export const getProjectProposals = async (req, res) => {
       return res.status(403).json({ message: "Not authorized to view these proposals" });
     }
 
+    // Selecting pr.* includes the new delivery_days automatically
     const proposals = await pool.query(
       `SELECT pr.*, u.name as freelancer_name, u.email as freelancer_email 
        FROM proposals pr
@@ -67,9 +68,8 @@ export const getProjectProposals = async (req, res) => {
 // @route   PATCH /api/proposals/:id/accept
 export const acceptProposal = async (req, res) => {
   try {
-    const { id } = req.params; // Proposal ID
+    const { id } = req.params;
 
-    // 1. Fetch proposal and project owner info
     const proposalData = await pool.query(
       `SELECT pr.*, p.client_id 
        FROM proposals pr
@@ -84,27 +84,25 @@ export const acceptProposal = async (req, res) => {
 
     const proposal = proposalData.rows[0];
 
-    // 2. Verify authorization
     if (proposal.client_id !== req.user.id) {
       return res.status(403).json({ message: "Not authorized to accept this proposal" });
     }
 
-    // 3. Update Proposal and Project status (Transaction)
     await pool.query("BEGIN");
 
-    // Accept this proposal
+    // 1. Accept this proposal
     await pool.query(
       "UPDATE proposals SET status = 'accepted' WHERE id = $1",
       [id]
     );
 
-    // Reject all other proposals for this project
+    // 2. Reject all other proposals for this project
     await pool.query(
       "UPDATE proposals SET status = 'rejected' WHERE project_id = $1 AND id != $2",
       [proposal.project_id, id]
     );
 
-    // Mark project as assigned
+    // 3. Mark project as assigned
     await pool.query(
       "UPDATE projects SET status = 'assigned' WHERE id = $1",
       [proposal.project_id]
@@ -120,12 +118,15 @@ export const acceptProposal = async (req, res) => {
   }
 };
 
+// @desc    Get current user's (Freelancer) proposals
+// @route   GET /api/proposals/my-proposals
 export const getMyProposals = async (req, res) => {
   try {
     const proposals = await pool.query(
       `SELECT 
         pr.id, 
         pr.bid_amount, 
+        pr.delivery_days,
         pr.status as proposal_status, 
         pr.created_at,
         p.id as project_id,

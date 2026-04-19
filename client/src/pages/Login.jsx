@@ -30,6 +30,14 @@ export default function Login() {
 
   return (
     <div className="flex min-h-screen bg-gray-100">
+      <div>
+        <Link
+          to="/"
+          className="text-2xl font-extrabold bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 bg-clip-text text-transparent tracking-wide"
+        >
+          FreeLanceHub
+      </Link>
+      </div>
       {/* Left side - Login Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-8">
         <form

@@ -4,22 +4,23 @@ import {
   getProjects, 
   getSingleProject, 
   updateProjectStatus,
-  getMyProjects 
+  getMyProjects,
+  getTrendingProjects
 } from "../controllers/projectController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
-// --- 1. STATIC ROUTES FIRST ---
-// This prevents "my-projects" from being treated as an ":id"
+// Static routes (Specific)
 router.get("/my-projects", protect, getMyProjects);
 
-// --- 2. GENERAL ROUTES ---
+// General routes
 router.post("/", protect, createProject);
 router.get("/", getProjects);
 
-// --- 3. DYNAMIC ROUTES LAST ---
+// Dynamic routes (Parametric)
 router.get("/:id", getSingleProject);
 router.patch("/:id/status", protect, updateProjectStatus);
 
+router.get("/trending", getTrendingProjects);
 export default router;

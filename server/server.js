@@ -4,14 +4,15 @@ import dotenv from "dotenv";
 import authRoutes from "./routes/authRoutes.js";
 import projectRoutes from "./routes/projectRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
+import postRoutes from "./routes/postRoutes.js"; // New Import
+import userRoutes from "./routes/userRoutes.js";
 import pool from "./config/db.js";
 
 dotenv.config();
 
 const app = express();
 
-// MIDDLEWARE
-
+// --- MIDDLEWARE ---
 app.use(
   cors({
     origin: "http://localhost:5173", 
@@ -21,20 +22,24 @@ app.use(
 
 app.use(express.json());
 
-
+// --- ROUTES ---
 app.use("/api/auth", authRoutes);
+app.use("/api/projects", projectRoutes);
 app.use("/api/proposals", proposalRoutes);
+app.use("/api/posts", postRoutes); // Registered Social Post Routes
+app.use("/api/users", userRoutes);
+
 app.get("/", (req, res) => {
   res.send("API is running...");
 });
 
-
+// --- DATABASE CONNECTION ---
 pool
   .connect()
   .then(() => console.log("✅ Connected to Neon DB"))
   .catch((err) => console.error("❌ DB Connection Error:", err));
 
-app.use("/api/projects", projectRoutes);
+// --- SERVER START ---
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

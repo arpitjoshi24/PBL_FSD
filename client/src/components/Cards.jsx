@@ -5,7 +5,7 @@ export default function Cards({ project }) {
   const navigate = useNavigate();
 
   const formattedDate = new Date(project.deadline).toLocaleDateString();
-
+  
   return (
     <div className="bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 p-6 border border-gray-100 hover:-translate-y-1">
 
