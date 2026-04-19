@@ -14,45 +14,34 @@ import Footer from "./components/Footer";
 
 import Home from "./pages/Home";
 import Projects from "./pages/Projects";
+import Freelancers from "./pages/Freelancers";
 import ProjectDetails from "./pages/ProjectDetail";
+import FreelancerDetails from "./pages/FreelancerDetail";
 import AddProject from "./pages/AddProjects";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
+import Explore from "./pages/Explore";
+import ClientDashboard from "./pages/ClientDashboard";
+import FreelancerDashboard from "./pages/FreelancerDashboard";
 
-/* -------------------- Protected Route -------------------- */
+// Protected Route: Requires login
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useSelector((state) => state.auth);
-
-  if (loading) return null; // prevents flicker
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-};
-
-/* -------- Client Only Route -------- */
-const ClientRoute = ({ children }) => {
-  const { user, isAuthenticated, loading } = useSelector(
-    (state) => state.auth
-  );
-
   if (loading) return null;
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (user?.role !== "client") {
-    return <Navigate to="/" replace />;
-  }
-
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
   return children;
 };
 
-/* -------------------- Layout -------------------- */
+// Client Only Route: Requires login AND client role
+const ClientRoute = ({ children }) => {
+  const { user, isAuthenticated, loading } = useSelector((state) => state.auth);
+  if (loading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (user?.role !== "client") return <Navigate to="/" replace />;
+  return children;
+};
+
 const Layout = () => {
   const location = useLocation();
 
@@ -63,16 +52,20 @@ const Layout = () => {
     <>
       {!hideLayout && <Navbar />}
 
-      <div className={`${!hideLayout ? "pt-20" : ""} min-h-screen px-4`}>
+      <div className={`${!hideLayout ? "" : ""} min-h-screen`}>
         <Routes>
           {/* Public Routes */}
           <Route path="/" element={<Home />} />
           <Route path="/projects" element={<Projects />} />
+          <Route path="/freelancers" element={<Freelancers />} />
+          {/* Path updated to match Dashboard links */}
           <Route path="/projects/:id" element={<ProjectDetails />} />
+          <Route path="/profile/:id" element={<FreelancerDetails />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/explore" element={<Explore />} />
 
-          {/* Protected */}
+          {/* Protected Routes (Any Role) */}
           <Route
             path="/profile"
             element={
@@ -82,7 +75,7 @@ const Layout = () => {
             }
           />
 
-          {/* Client Only */}
+          {/* Client Specific Routes */}
           <Route
             path="/add-project"
             element={
@@ -91,6 +84,17 @@ const Layout = () => {
               </ClientRoute>
             }
           />
+
+          <Route
+            path="/client-dashboard"
+            element={
+              <ClientRoute>
+                <ClientDashboard />
+              </ClientRoute>
+            }
+          />
+
+          <Route path="/freelancer-dashboard" element={<ProtectedRoute><FreelancerDashboard /></ProtectedRoute>} />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -102,7 +106,6 @@ const Layout = () => {
   );
 };
 
-/* -------------------- Main App -------------------- */
 function App() {
   const dispatch = useDispatch();
 

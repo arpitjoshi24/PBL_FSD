@@ -2,7 +2,6 @@ import pool from "../config/db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
-
 const generateToken = (id, role) => {
   return jwt.sign(
     { userId: id, role },
@@ -72,9 +71,6 @@ export const signup = async (req, res) => {
   }
 };
 
-/* =======================================================
-   LOGIN CONTROLLER
-======================================================= */
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -132,9 +128,6 @@ export const login = async (req, res) => {
   }
 };
 
-/* =======================================================
-   GET CURRENT USER (/me)
-======================================================= */
 export const getMe = async (req, res) => {
   try {
     const userData = await pool.query(
@@ -157,5 +150,37 @@ export const getMe = async (req, res) => {
     res.status(500).json({
       message: "Server Error",
     });
+  }
+};
+
+/**
+ * @desc    Update user profile
+ * @route   PUT /api/auth/profile
+ * @access  Private
+ */
+export const updateProfile = async (req, res) => {
+  try {
+    const { name, about, skills, company } = req.body;
+    const userId = req.user.id;
+
+    const updatedUser = await pool.query(
+      `UPDATE users 
+       SET name = COALESCE($1, name),
+           about = COALESCE($2, about),
+           skills = COALESCE($3, skills),
+           company = COALESCE($4, company)
+       WHERE id = $5
+       RETURNING id, name, email, role, skills, company, about`,
+      [name, about, skills, company, userId]
+    );
+
+    if (updatedUser.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(updatedUser.rows[0]);
+  } catch (error) {
+    console.error("Update Profile Error:", error);
+    res.status(500).json({ message: "Server Error" });
   }
 };
