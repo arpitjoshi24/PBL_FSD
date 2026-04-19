@@ -42,7 +42,7 @@ export const fetchProjectProposals = createAsyncThunk(
     try {
       const token = localStorage.getItem("token");
       const response = await axios.get(
-        `http://localhost:5000/api/proposals/project/${projectId}`,
+        `http://localhost:5000/api/proposals/projects/${projectId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }

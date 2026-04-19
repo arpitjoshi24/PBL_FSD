@@ -11,7 +11,7 @@ const router = express.Router();
 
 // --- 1. STATIC/SPECIFIC ROUTES ---
 router.get("/my-proposals", protect, getMyProposals);
-router.get("/project/:projectId", protect, getProjectProposals);
+router.get("/projects/:projectId", protect, getProjectProposals);
 
 // --- 2. GENERAL ACTION ROUTES ---
 router.post("/", protect, createProposal);

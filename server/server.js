@@ -6,6 +6,7 @@ import projectRoutes from "./routes/projectRoutes.js";
 import proposalRoutes from "./routes/proposalRoutes.js";
 import postRoutes from "./routes/postRoutes.js"; // New Import
 import userRoutes from "./routes/userRoutes.js";
+import reviewRoutes from "./routes/reviewRoutes.js";
 import pool from "./config/db.js";
 
 dotenv.config();
@@ -28,6 +29,7 @@ app.use("/api/projects", projectRoutes);
 app.use("/api/proposals", proposalRoutes);
 app.use("/api/posts", postRoutes); // Registered Social Post Routes
 app.use("/api/users", userRoutes);
+app.use("/api/reviews", reviewRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is running...");

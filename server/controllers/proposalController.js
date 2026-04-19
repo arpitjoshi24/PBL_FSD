@@ -29,7 +29,7 @@ export const createProposal = async (req, res) => {
 };
 
 // @desc    Get all proposals for a specific project (Owner Only)
-// @route   GET /api/proposals/project/:projectId
+// @route   GET /api/proposals/projects/:projectId
 export const getProjectProposals = async (req, res) => {
   try {
     const { projectId } = req.params;
@@ -70,6 +70,7 @@ export const acceptProposal = async (req, res) => {
   try {
     const { id } = req.params;
 
+    // Fetch proposal details AND project ownership in one go
     const proposalData = await pool.query(
       `SELECT pr.*, p.client_id 
        FROM proposals pr
@@ -84,13 +85,14 @@ export const acceptProposal = async (req, res) => {
 
     const proposal = proposalData.rows[0];
 
+    // Check if the person clicking "Accept" actually owns the project
     if (proposal.client_id !== req.user.id) {
       return res.status(403).json({ message: "Not authorized to accept this proposal" });
     }
 
     await pool.query("BEGIN");
 
-    // 1. Accept this proposal
+    // 1. Accept this specific proposal
     await pool.query(
       "UPDATE proposals SET status = 'accepted' WHERE id = $1",
       [id]
@@ -102,15 +104,16 @@ export const acceptProposal = async (req, res) => {
       [proposal.project_id, id]
     );
 
-    // 3. Mark project as assigned
+    // 3. Mark project as 'assigned' AND set the 'assigned_to' ID
+    // Using proposal.freelancer_id and proposal.project_id from our initial SELECT
     await pool.query(
-      "UPDATE projects SET status = 'assigned' WHERE id = $1",
-      [proposal.project_id]
+      "UPDATE projects SET status = 'assigned', assigned_to = $1 WHERE id = $2",
+      [proposal.freelancer_id, proposal.project_id]
     );
 
     await pool.query("COMMIT");
 
-    res.status(200).json({ message: "Proposal accepted and project assigned" });
+    res.status(200).json({ message: "Proposal accepted and freelancer assigned successfully" });
   } catch (error) {
     await pool.query("ROLLBACK");
     console.error("Accept Proposal Error:", error);
@@ -127,7 +130,7 @@ export const getMyProposals = async (req, res) => {
         pr.id, 
         pr.bid_amount, 
         pr.delivery_days,
-        pr.status as proposal_status, 
+        pr.status as current_proposal_status, 
         pr.created_at,
         p.id as project_id,
         p.title as project_title, 
