@@ -1,9 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 
-/* ================================
-   Initial State
-================================= */
+//Initial State
 
 const tokenFromStorage = localStorage.getItem("token");
 
@@ -11,13 +9,13 @@ const initialState = {
   user: null,
   token: tokenFromStorage || null,
   isAuthenticated: !!tokenFromStorage,
-  loading: false,
+  // 🛡️ CRITICAL FIX: If we have a token, we MUST start in a loading state 
+  // so the Router doesn't kick us to login before the DB responds!
+  loading: !!tokenFromStorage, 
   error: null,
 };
 
-/* ================================
-   SIGNUP
-================================= */
+//SIGNUP
 
 export const signupUser = createAsyncThunk(
   "auth/signupUser",
@@ -37,9 +35,7 @@ export const signupUser = createAsyncThunk(
   }
 );
 
-/* ================================
-   LOGIN
-================================= */
+//LOGIN
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
@@ -59,9 +55,7 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-/* ================================
-   LOAD USER (Auto Login After Refresh)
-================================= */
+//LOAD USER (Auto Login After Refresh)
 
 export const loadUser = createAsyncThunk(
   "auth/loadUser",
@@ -90,8 +84,32 @@ export const loadUser = createAsyncThunk(
 );
 
 /* ================================
-   SLICE
+   UPDATE PROFILE
 ================================= */
+export const updateUserProfile = createAsyncThunk(
+  "auth/updateUserProfile",
+  async (userData, thunkAPI) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await axios.put(
+        "http://localhost:5000/api/auth/profile",
+        userData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      return response.data; // The updated user object from RETURNING clause
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.response?.data?.message || "Update failed"
+      );
+    }
+  }
+);
+
+//SLICE
 
 const authSlice = createSlice({
   name: "auth",
@@ -111,7 +129,7 @@ const authSlice = createSlice({
   extraReducers: (builder) => {
     builder
 
-      /* ===== SIGNUP ===== */
+      //SIGNUP
       .addCase(signupUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -129,7 +147,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* ===== LOGIN ===== */
+      //LOGIN
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -147,7 +165,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* ===== LOAD USER ===== */
+      //LOAD USER
       .addCase(loadUser.pending, (state) => {
         state.loading = true;
       })
@@ -162,6 +180,19 @@ const authSlice = createSlice({
         state.token = null;
         state.isAuthenticated = false;
         localStorage.removeItem("token");
+      })
+
+      /* ===== UPDATE PROFILE ===== */
+      .addCase(updateUserProfile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload; // Updates global state with new profile info
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });

@@ -1,38 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { useDispatch } from "react-redux";
-import { fetchProjects } from "../features/projectSlice";
+import React from "react";
 
-export default function Filter() {
-  const dispatch = useDispatch();
-
-  const [minBudget, setMinBudget] = useState("");
-  const [maxBudget, setMaxBudget] = useState("");
-  const [skills, setSkills] = useState("");
-  const [deadline, setDeadline] = useState("");
-
-  // 🔥 Auto filter with debounce
-  useEffect(() => {
-    const delay = setTimeout(() => {
-      dispatch(
-        fetchProjects({
-          minBudget,
-          maxBudget,
-          skills,
-          deadline,
-        })
-      );
-    }, 500); // 500ms delay
-
-    return () => clearTimeout(delay);
-  }, [minBudget, maxBudget, skills, deadline, dispatch]);
-
-  const clearFilters = () => {
-    setMinBudget("");
-    setMaxBudget("");
-    setSkills("");
-    setDeadline("");
-    dispatch(fetchProjects()); // reload all
+export default function Filter({ filters, setFilters, clearFilters }) {
+  
+  const handleChange = (key, value) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
   };
+
+  // Guard clause just in case it renders before props are passed
+  if (!filters) return null;
 
   return (
     <div className="bg-white rounded-2xl shadow-md p-6 border border-gray-100 sticky top-24">
@@ -47,8 +22,8 @@ export default function Filter() {
         </label>
         <input
           type="number"
-          value={minBudget}
-          onChange={(e) => setMinBudget(e.target.value)}
+          value={filters.minBudget || ""}
+          onChange={(e) => handleChange("minBudget", e.target.value)}
           className="w-full mt-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
           placeholder="₹ 1000"
         />
@@ -61,8 +36,8 @@ export default function Filter() {
         </label>
         <input
           type="number"
-          value={maxBudget}
-          onChange={(e) => setMaxBudget(e.target.value)}
+          value={filters.maxBudget || ""}
+          onChange={(e) => handleChange("maxBudget", e.target.value)}
           className="w-full mt-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
           placeholder="₹ 50000"
         />
@@ -75,8 +50,8 @@ export default function Filter() {
         </label>
         <input
           type="text"
-          value={skills}
-          onChange={(e) => setSkills(e.target.value)}
+          value={filters.skills || ""}
+          onChange={(e) => handleChange("skills", e.target.value)}
           className="w-full mt-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
           placeholder="React, Node"
         />
@@ -89,8 +64,8 @@ export default function Filter() {
         </label>
         <input
           type="date"
-          value={deadline}
-          onChange={(e) => setDeadline(e.target.value)}
+          value={filters.deadline || ""}
+          onChange={(e) => handleChange("deadline", e.target.value)}
           className="w-full mt-1 border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500"
         />
       </div>
@@ -98,7 +73,7 @@ export default function Filter() {
       {/* Clear Button */}
       <button
         onClick={clearFilters}
-        className="w-full border border-gray-300 py-2 rounded-xl text-gray-600 hover:bg-gray-100 transition"
+        className="w-full border border-gray-300 py-2 rounded-xl text-gray-600 hover:bg-gray-100 transition font-bold"
       >
         Clear Filters
       </button>
